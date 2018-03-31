@@ -1,0 +1,16 @@
+---
+- hosts: k8s-worker-node
+  become: yes
+  tasks:
+# Adjust the sysctl.conf file
+  - name: Edit sysctl file
+    command: /bin/printf 'net.bridge.bridge-nf-call-iptables = 1\n 
+                        net.bridge.bridge-nf-call-ip6tables = 1\n' >> /etc/sysctl.conf
+# Save the Settings
+  - name: Save sysctl settings
+    command: /usr/sbin/sysctl --system
+# After getting the token value from the API-Server using command "kubeadm token list " 
+# We can Join the Cluster
+# Assuming that the Master Node hostname is " api-server.cloud.com
+  - name: Join the cluster
+    command: /usr/bin/kubeadm join --token o3b93x.0fuhoy2it4t6w5x1 api-server.cloud.com:6443 --discovery-token-unsafe-skip-ca-verification

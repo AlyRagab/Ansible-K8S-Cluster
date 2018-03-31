@@ -1,0 +1,28 @@
+---
+
+- name: Edit sysctl.conf file
+  shell: printf 'net.bridge.bridge-nf-call-iptables = 1\n  
+                 net.bridge.bridge-nf-call-ip6tables = 1\n' >> /etc/sysctl.conf
+
+- name: Save sysctl settings
+  command: /usr/sbin/sysctl --system
+
+# Generating the Cluster Token so that the Nodes can join
+- name: Generate cluster token
+  command: /usr/bin/kubeadm token generate
+  register: generated_token
+  when: kubeadm_token is not defined
+
+# Set the system fact " kubeadm_token " with the value of the generated_token variable
+- set_fact: kubeadm_token={{ generated_token.stdout }}
+  when: kubeadm_token is not defined
+
+# Initiate the K8S Cluster by the generated token
+- name: Initiate cluster
+  command: /usr/bin/kubeadm init --token {{ kubeadm_token }}
+
+# Create the Cluster Network
+- name : Create flannel network
+  command: /usr/bin/kubectl apply -f {{ kubeadm_flannel }}
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf

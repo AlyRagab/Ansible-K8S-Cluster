@@ -1,0 +1,8 @@
+---
+
+cluster_packages:
+ - docker
+ - kubeadm
+ - kubelet
+ - kubectl
+ - kubernetes-cni
